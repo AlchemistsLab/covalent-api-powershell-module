@@ -1,6 +1,8 @@
 # Covalent API PowerShell Module
 
-**Created By**: Maxim Tkachenko`n`n**Email**: itsys4@gmail.com
+**Created By**: Maxim Tkachenko
+<br>
+**Email**: itsys4@gmail.com
 
 ### Purpose:
 Contains functions implementing calls to Covalent API endpoints
