@@ -11,7 +11,7 @@ Contains functions implementing calls to Covalent API endpoints
 https://www.covalenthq.com/docs/api/
 
 ### Installation
-1. Create a Covalent API token: https://www.covalenthq.com/platform/#/auth/register
+1. Create a Covalent API token: https://www.covalenthq.com/platform/#/auth/register (skip this step if you have a token already)
 2. Download `covalent-api-ps-module.psm1` file
 3. Run the command to import the module: `Import-Module "<path to the folder where the file was saved>\covalent-api-ps-module.psm1" -Force`
 4. Set `$env:COVALENT_API_TOKEN` environment variable: `$env:COVALENT_API_TOKEN = "<your token>"`
