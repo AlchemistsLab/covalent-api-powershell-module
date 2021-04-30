@@ -16,6 +16,9 @@ https://www.covalenthq.com/docs/api/
 3. Run the command to import the module: `Import-Module "<path to the folder where the file was saved>\covalent-api-ps-module.psm1" -Force`
 4. Set `$env:COVALENT_API_TOKEN` environment variable: `$env:COVALENT_API_TOKEN = "<your token>"`
 5. Default quote currency is USD. To change that, either set `$env:QUOTE_CURRENCY` variable or use `-QuoteCurrency` parameter available in many functions
+6. Default output format is JSON. To change that, either set `$env:OUTPUT_FORMAT` variable or use `-Format` parameter available in many functions
+7. Default Covalent API url is `https://api.covalenthq.com/v1`, but it can be changed via `-APIUrl` parameter of each function if needed
 
 ### Functions and respective API endpoint
 - Get-SpotPrices - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/tickers/)
+- Get-PriceVolatility - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/volatility/)

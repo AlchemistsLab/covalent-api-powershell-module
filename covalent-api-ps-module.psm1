@@ -10,7 +10,7 @@
 # Official Covalent API docs: https://www.covalenthq.com/docs/api/
 #############################################################################################
 
-$script:COVALENT_API = "https://api.covalenthq.com/v1"
+$script:COVALENT_API_URL = "https://api.covalenthq.com/v1"
 
 <#
 .SYNOPSIS
@@ -44,13 +44,17 @@ function Confirm-APIToken {
 
 <#
 .SYNOPSIS
-Function returns a list spot prices for a ticket(s).
+Function returns spot prices and metadata for all tickers or a select group of tickers.
 
 .DESCRIPTION
-Function returns a list spot prices for a ticket(s).
+Function returns spot prices and metadata for all tickers or a select group of tickers. Without tickers query param, it returns a paginated list of all tickers sorted by market cap.
+
+.PARAMETER Tickers
+Comma-separated list of tickers. If empty, all available tickers are returned.
 
 .EXAMPLE
 Get-SpotPrices -Tickers ""
+Get-SpotPrices -Tickers "TRIBE,MATIC,1INCH"
 #>
 function Get-SpotPrices {
     [CmdletBinding()]
@@ -59,39 +63,62 @@ function Get-SpotPrices {
         [Parameter(Mandatory = $false)]
         [String]$Tickers,
 
-        # common parameters
+        ####### API token #######
         [Parameter(Mandatory = $false)]
-        [ValidateSet(
-            "USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH"
-        )]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
         [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIToken = $env:COVALENT_API_TOKEN
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
     )
     BEGIN {
-        Confirm-APIToken -APIToken $APIToken
+        $uri = "$APIUrl/pricing/tickers/?&key=$APIToken"
 
-        $uri = "$script:COVALENT_API/pricing/tickers/?&key=$APIToken"
-
+        # converting a comma-separated list into url compatible
         if ($Tickers) {
-            $tickerList = ""
-            foreach ($t in $Tickers.Split(",").Trim()) {
-                if ($t) {
-                    if ($tickerList) {
-                        $tickerList += "%2C$t"
-                    }
-                    else {
-                        $tickerList += "$t"
-                    }
-                }
-            }
+            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
 
-            $uri += "&tickers=$tickerList"
+            if ($tickerList.Replace("%2C","")) {
+                $uri += "&tickers=$tickerList"
+            }
         }
 
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
         if ($QuoteCurrency) {
-            $uri += "&quote-currency=$QuoteCurrency"
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
         }
     }
     PROCESS {
@@ -102,5 +129,91 @@ function Get-SpotPrices {
     }
 }
 
+<#
+.SYNOPSIS
+Function returns price volatility and metadata for a select group of tickers.
 
-Export-ModuleMember -Function Get-SpotPrices
+.DESCRIPTION
+Function returns price volatility and metadata for a select group of tickers. Without the tickers query param, it defaults to ETH volatility.
+
+.PARAMETER Tickers
+Comma-separated list of tickers. If empty, all available tickers are returned.
+
+.EXAMPLE
+Get-PriceVolatility -Tickers ""
+Get-PriceVolatility -Tickers "TRIBE,MATIC,1INCH"
+#>
+function Get-PriceVolatility {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $false)]
+        [String]$Tickers,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/pricing/volatility/?&key=$APIToken"
+
+        # converting a comma-separated list into url compatible
+        if ($Tickers) {
+            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+
+            if ($tickerList.Replace("%2C","")) {
+                $uri += "&tickers=$tickerList"
+            }
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+Export-ModuleMember -Function Get-SpotPrices, Get-PriceVolatility
