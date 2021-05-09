@@ -668,4 +668,572 @@ function Get-PriceVolatility {
     }
 }
 
-Export-ModuleMember -Function Get-HistoricalPricesByAddress, Get-HistoricalPricesByAddresses, Get-HistoricalPricesByAddressesV2, Get-HistoricalPricesByTicker, Get-SpotPrices, Get-PriceVolatility
+<#
+.SYNOPSIS
+Function returns a list of all ERC20 and NFT token balances for address along with their current spot prices. 
+
+.DESCRIPTION
+Function returns a list of all ERC20 and NFT token balances for address along with their current spot prices.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER Address
+Wallet address.
+
+.PARAMETER IncludeNft
+Set to true to return ERC721 and ERC1155 assets. Defaults to false.
+
+.PARAMETER NoNftFetch
+Set to true to skip fetching NFT metadata, which can result in faster responses. Defaults to false and only applies when IncludeNft is true.
+
+.EXAMPLE
+Get-TokenBalancesForAddress -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+Get-TokenBalancesForAddress -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae" -IncludeNft $true -NoNftFetch $false
+#>
+function Get-TokenBalancesForAddress {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        [Parameter(Mandatory = $false)]
+        [bool]$IncludeNft = $false,
+
+        [Parameter(Mandatory = $false)]
+        [bool]$NoNftFetch = $false,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/balances_v2/?&key=$APIToken"
+
+        if ($IncludeNft) {
+            $uri += "&nft=true"
+
+            if ($NoNftFetch) {
+                $uri += "&no-nft-fetch=true"
+            }
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns wallet value for the last 30 days at 24 hour timestamps. 
+
+.DESCRIPTION
+Function returns wallet value for the last 30 days at 24 hour timestamps.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-HistoricalPortfolioValueOverTime -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-HistoricalPortfolioValueOverTime {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/portfolio_v2/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns all transactions for address including their decoded log events. 
+
+.DESCRIPTION
+Function returns all transactions for address including their decoded log events. This endpoint does a deep-crawl of the blockchain to retrieve all kinds of transactions that references the address.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER Address
+Wallet address.
+
+.PARAMETER SortOrder
+Sort the transactions in chronological order. By default, it's set to Desc and returns transactions in chronological descending order.
+
+.PARAMETER NoLogs
+Setting this to $true will omit decoded event logs, resulting in lighter and faster responses. By default it's set to $false.
+
+.EXAMPLE
+Get-Transactions -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae" -SortOrder Asc -NoLogs $true
+#>
+function Get-Transactions {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("Asc","Desc")]
+        [String]$SortOrder = "Desc",
+
+        [Parameter(Mandatory = $false)]
+        [bool]$NoLogs = $false,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/transactions_v2/?&key=$APIToken"
+
+        if ($SortOrder -ieq "Asc") {
+            $uri += "&block-signed-at-asc=true"
+        }
+
+        if ($NoLogs) {
+            $uri += "&no-logs=true"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns ERC20 token transfers for wallet address and contract address.
+
+.DESCRIPTION
+Function returns ERC20 token transfers for wallet address and contract address.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER Address
+Wallet address.
+
+.PARAMETER ContractAddress
+Smart contract address.
+
+.EXAMPLE
+Get-ERC20TokenTransfers -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae" -ContractAddress "0xc7283b66eb1eb5fb86327f08e1b5816b0720212b"
+#>
+function Get-ERC20TokenTransfers {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        [Parameter(Mandatory = $true)]
+        [String]$ContractAddress,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/transfers_v2/?&key=$APIToken"
+
+        if ($ContractAddress) {
+            $uri += "&contract-address=$($ContractAddress.Trim().ToLower())"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns a single block at BlockHeight.
+
+.DESCRIPTION
+Function returns a single block at BlockHeight. If BlockHeight is not set, returns the latest block available.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER BlockHeight
+Block height. By default "latest".
+
+.EXAMPLE
+Get-Block -ChainId 1
+Get-Block -ChainId 1 -BlockHeight 12402190
+#>
+function Get-Block {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $false)]
+        [int]$BlockHeight,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        if ($BlockHeight) {
+            $blockHeightString = $BlockHeight.ToString()
+        }
+        else {
+            $blockHeightString = "latest"
+        }
+
+        $uri = "$APIUrl/$ChainId/block_v2/$blockHeightString/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns all the block height(s) of a particular chain within a date range.
+
+.DESCRIPTION
+Function returns all the block height(s) of a particular chain within a date range. If the EndDate is not set, returns every block height from the StartDate to now.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER StartDate
+The start day of the date range.
+
+.PARAMETER EndDate
+The end day of the date range. If not set, it means "latest" by default.
+
+.EXAMPLE
+Get-BlockHeights -ChainId 1 -StartDate "2021-04-01" -EndDate "2021-04-02"
+Get-BlockHeights -ChainId 1 -StartDate (Get-Date).AddDays(-1)
+#>
+function Get-BlockHeights {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $true)]
+        [datetime]$StartDate,
+
+        [Parameter(Mandatory = $false)]
+        [datetime]$EndDate,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $startDateString = $StartDate.ToString('yyyy-MM-ddTHH:mm:ssZ').Replace(":","%3A")
+
+        if ($EndDate) {
+            $endDateString = $EndDate.ToString('yyyy-MM-ddTHH:mm:ssZ').Replace(":","%3A")
+        }
+        else {
+            $endDateString = "latest"
+        }
+
+        $uri = "$APIUrl/$ChainId/block_v2/$startDateString/$endDateString/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns a paginated list of decoded log events emiited by a particular smart contract.
+
+.DESCRIPTION
+Function returns a paginated list of decoded log events emiited by a particular smart contract.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER ContractAddress
+Smart contract address.
+
+.PARAMETER StartingBlock
+Starting block to define a block range.
+
+.PARAMETER EndingBlock
+Ending block to define a block range.
+
+.EXAMPLE
+Get-Block -ChainId 1 -BlockHeight "latest"
+Get-Block -ChainId 1 -BlockHeight "12402190"
+#>
+function Get-Block {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $true)]
+        [String]$BlockHeight,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/$ChainId/block_v2/$($BlockHeight.Trim().ToLower())/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+Export-ModuleMember -Function Get-HistoricalPricesByAddress, Get-HistoricalPricesByAddresses, Get-HistoricalPricesByAddressesV2, Get-HistoricalPricesByTicker, Get-SpotPrices, Get-PriceVolatility, Get-TokenBalancesForAddress, Get-HistoricalPortfolioValueOverTime, Get-Transactions, Get-ERC20TokenTransfers, Get-Block, Get-BlockHeights

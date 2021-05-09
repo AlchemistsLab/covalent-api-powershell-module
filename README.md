@@ -10,7 +10,7 @@ Contains functions implementing calls to Covalent API endpoints
 ### Official Covalent API docs
 https://www.covalenthq.com/docs/api/
 
-### Installation and useful notes
+### Installation and Useful Notes
 1. Create a Covalent API token: https://www.covalenthq.com/platform/#/auth/register (skip this step if you have a token already)
 2. Download `covalent-api-ps-module.psm1` file
 3. Run the command to import the module: `Import-Module "<path to the folder where the file was saved>\covalent-api-ps-module.psm1" -Force`
@@ -21,7 +21,16 @@ https://www.covalenthq.com/docs/api/
 8. Many functions have the pagination parameters `-PageNumber` and `-PageSize` which can be used to limit output
 9. Many functions have `ChainId` parameter. A list of supported blockchain networks can be found [here](https://www.covalenthq.com/docs/api/#overview--supported-networks) 
 
-### Functions and respective API endpoint
+### Functions and Respective API Endpoint
+**Class A**
+- Get-TokenBalancesForAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/balances_v2/)
+- Get-HistoricalPortfolioValueOverTime - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/portfolio_v2/)
+- Get-Transactions - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/transactions_v2/)
+- Get-ERC20TokenTransfers - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/transfers_v2/)
+- Get-Block - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/block_v2/{block_height}/)
+- Get-BlockHeights - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/block_v2/{block_height}/)
+
+**Pricing Endpoints**
 - Get-HistoricalPricesByAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_address/{chain_id}/{quote_currency}/{contract_address}/)
 - Get-HistoricalPricesByAddresses - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_addresses/{chain_id}/{quote_currency}/{contract_addresses}/)
 - Get-HistoricalPricesByAddressesV2 - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_addresses_v2/{chain_id}/{quote_currency}/{contract_addresses}/) 
