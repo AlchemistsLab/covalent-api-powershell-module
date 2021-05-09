@@ -29,6 +29,8 @@ https://www.covalenthq.com/docs/api/
 - Get-ERC20TokenTransfers - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/transfers_v2/)
 - Get-Block - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/block_v2/{block_height}/)
 - Get-BlockHeights - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/block_v2/{block_height}/)
+- Get-LogEventsByContractAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/events/address/{address}/)
+- Get-LogEventsByTopicHashes - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/events/topics/{topic}/)
 
 **Pricing Endpoints**
 - Get-HistoricalPricesByAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_address/{chain_id}/{quote_currency}/{contract_address}/)

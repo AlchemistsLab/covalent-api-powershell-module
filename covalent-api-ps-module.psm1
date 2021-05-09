@@ -1189,13 +1189,12 @@ Smart contract address.
 Starting block to define a block range.
 
 .PARAMETER EndingBlock
-Ending block to define a block range.
+Ending block to define a block range. By default "latest".
 
 .EXAMPLE
-Get-Block -ChainId 1 -BlockHeight "latest"
-Get-Block -ChainId 1 -BlockHeight "12402190"
+Get-LogEventsByContractAddress -ChainId 1 -ContractAddress "0xc7283b66eb1eb5fb86327f08e1b5816b0720212b" -StartingBlock 12302518 -EndingBlock 12402520
 #>
-function Get-Block {
+function Get-LogEventsByContractAddress {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
@@ -1203,11 +1202,26 @@ function Get-Block {
         [int]$ChainId,
 
         [Parameter(Mandatory = $true)]
-        [String]$BlockHeight,
+        [String]$ContractAddress,
+
+        [Parameter(Mandatory = $true)]
+        [int]$StartingBlock,
+
+        [Parameter(Mandatory = $false)]
+        [int]$EndingBlock,
 
         ####### API token #######
         [Parameter(Mandatory = $false)]
         [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
 
         ####### common parameters #######
         [Parameter(Mandatory = $false)]
@@ -1218,10 +1232,30 @@ function Get-Block {
         [String]$APIUrl = $script:COVALENT_API_URL
     )
     BEGIN {
-        $uri = "$APIUrl/$ChainId/block_v2/$($BlockHeight.Trim().ToLower())/?&key=$APIToken"
+        $uri = "$APIUrl/$ChainId/events/address/$($ContractAddress.Trim().ToLower())/?&key=$APIToken"
+
+        $uri += "&starting-block=$StartingBlock"
+
+        if ($EndingBlock) {
+            $endingBlockString = $EndingBlock.ToString()
+        }
+        else {
+            $endingBlockString = "latest"
+        }
+
+        $uri += "&ending-block=$endingBlockString"
 
         ####### validating API token #######
         Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
 
         ####### processing of the common parameters #######
         if ($Format) {
@@ -1236,4 +1270,115 @@ function Get-Block {
     }
 }
 
-Export-ModuleMember -Function Get-HistoricalPricesByAddress, Get-HistoricalPricesByAddresses, Get-HistoricalPricesByAddressesV2, Get-HistoricalPricesByTicker, Get-SpotPrices, Get-PriceVolatility, Get-TokenBalancesForAddress, Get-HistoricalPortfolioValueOverTime, Get-Transactions, Get-ERC20TokenTransfers, Get-Block, Get-BlockHeights
+<#
+.SYNOPSIS
+Function returns a paginated list of decoded log events with one or more topic hashes separated by a comma.
+
+.DESCRIPTION
+Function returns a paginated list of decoded log events with one or more topic hashes separated by a comma.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER TopicHashes
+A comma separated list of topic hashes. Topic hash calculator: https://www.covalenthq.com/docs/tools/topic-calculator
+
+.PARAMETER StartingBlock
+Starting block to define a block range.
+
+.PARAMETER EndingBlock
+Ending block to define a block range. By default "latest".
+
+.PARAMETER SenderAddress
+The address of the sender.
+
+.EXAMPLE
+Get-LogEventsByTopicHashes -ChainId 1 -TopicHashes "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925" -StartingBlock 12402600 -EndingBlock 12402603 -PageSize 10
+#>
+function Get-LogEventsByTopicHashes {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $true)]
+        [String]$TopicHashes,
+
+        [Parameter(Mandatory = $true)]
+        [int]$StartingBlock,
+
+        [Parameter(Mandatory = $false)]
+        [int]$EndingBlock,
+
+        [Parameter(Mandatory = $false)]
+        [String]$SenderAddress,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        # converting a comma-separated list into url compatible
+        $topicList = $TopicHashes.Split(",").Trim() -join "%2C"
+
+        $uri = "$APIUrl/$ChainId/events/topics/$topicList/?&key=$APIToken"
+
+        $uri += "&starting-block=$StartingBlock"
+
+        if ($EndingBlock) {
+            $endingBlockString = $EndingBlock.ToString()
+        }
+        else {
+            $endingBlockString = "latest"
+        }
+
+        $uri += "&ending-block=$endingBlockString"
+
+        if ($SenderAddress) {
+            $uri += "&sender-address=$($SenderAddress.Trim().ToLower())"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+Export-ModuleMember -Function Get-HistoricalPricesByAddress, Get-HistoricalPricesByAddresses, Get-HistoricalPricesByAddressesV2, Get-HistoricalPricesByTicker, Get-SpotPrices, Get-PriceVolatility, Get-TokenBalancesForAddress, Get-HistoricalPortfolioValueOverTime, Get-Transactions, Get-ERC20TokenTransfers, Get-Block, Get-BlockHeights, Get-LogEventsByContractAddress, Get-LogEventsByTopicHashes
