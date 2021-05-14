@@ -22,7 +22,7 @@ https://www.covalenthq.com/docs/api/
 9. Many functions have `ChainId` parameter. A list of supported blockchain networks can be found [here](https://www.covalenthq.com/docs/api/#overview--supported-networks) 
 
 ### Functions and respective API endpoint
-- Get-HistoricalPricesByAddress - https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_address/{chain_id}/{quote_currency}/{contract_address}/
+- Get-HistoricalPricesByAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_address/&#123;chain_id&#125;/&#123;quote_currency&#125;/&#123;contract_address&#125;/)
 - Get-HistoricalPricesByAddresses - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_addresses/\{chain_id\}/\{quote_currency\}/\{contract_addresses\}/)
 - Get-HistoricalPricesByAddressesV2 - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_addresses_v2/\{chain_id\}/\{quote_currency\}/\{contract_addresses\}/) 
 - Get-HistoricalPricesByTicker - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical/\{quote_currency\}/\{ticker_symbol\}/)
