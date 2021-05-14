@@ -31,6 +31,13 @@ https://www.covalenthq.com/docs/api/
 - Get-BlockHeights - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/block_v2/{block_height}/)
 - Get-LogEventsByContractAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/events/address/{address}/)
 - Get-LogEventsByTopicHashes - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/events/topics/{topic}/)
+- Get-ExternalNFTMetadata - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/nft_metadata/{token_id}/)
+- Get-NFTTokenIDs - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/nft_token_ids/)
+- Get-NFTTransactions - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/nft_transactions/{token_id}/)
+- Get-ChangesInTokenHoldersBetweenTwoBlockHeights - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/token_holders_changes/)
+- Get-TokenHoldersAsOfBlockHeight - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/token_holders/)
+- Get-ContractMetadata - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/tokenlists/{id}/)
+- Get-TransactionByTxHash - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/transaction_v2/{tx_hash}/)
 
 **Pricing Endpoints**
 - Get-HistoricalPricesByAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_address/{chain_id}/{quote_currency}/{contract_address}/)
