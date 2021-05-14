@@ -10,7 +10,7 @@ Contains functions implementing calls to Covalent API endpoints
 ### Official Covalent API docs
 https://www.covalenthq.com/docs/api/
 
-### Installation and useful notes
+### Installation and Useful Notes
 1. Create a Covalent API token: https://www.covalenthq.com/platform/#/auth/register (skip this step if you have a token already)
 2. Download `covalent-api-ps-module.psm1` file
 3. Run the command to import the module: `Import-Module "<path to the folder where the file was saved>\covalent-api-ps-module.psm1" -Force`
@@ -21,7 +21,25 @@ https://www.covalenthq.com/docs/api/
 8. Many functions have the pagination parameters `-PageNumber` and `-PageSize` which can be used to limit output
 9. Many functions have `ChainId` parameter. A list of supported blockchain networks can be found [here](https://www.covalenthq.com/docs/api/#overview--supported-networks) 
 
-### Functions and respective API endpoint
+### Functions and Respective API Endpoint
+**Class A**
+- Get-TokenBalancesForAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/balances_v2/)
+- Get-HistoricalPortfolioValueOverTime - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/portfolio_v2/)
+- Get-Transactions - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/transactions_v2/)
+- Get-ERC20TokenTransfers - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/transfers_v2/)
+- Get-Block - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/block_v2/{block_height}/)
+- Get-BlockHeights - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/block_v2/{block_height}/)
+- Get-LogEventsByContractAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/events/address/{address}/)
+- Get-LogEventsByTopicHashes - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/events/topics/{topic}/)
+- Get-ExternalNFTMetadata - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/nft_metadata/{token_id}/)
+- Get-NFTTokenIDs - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/nft_token_ids/)
+- Get-NFTTransactions - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/nft_transactions/{token_id}/)
+- Get-ChangesInTokenHoldersBetweenTwoBlockHeights - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/token_holders_changes/)
+- Get-TokenHoldersAsOfBlockHeight - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/token_holders/)
+- Get-ContractMetadata - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/tokenlists/{id}/)
+- Get-TransactionByTxHash - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/transaction_v2/{tx_hash}/)
+
+**Pricing Endpoints**
 - Get-HistoricalPricesByAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_address/{chain_id}/{quote_currency}/{contract_address}/)
 - Get-HistoricalPricesByAddresses - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_addresses/\{chain_id\}/\{quote_currency\}/\{contract_addresses\}/)
 - Get-HistoricalPricesByAddressesV2 - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_addresses_v2/\{chain_id\}/\{quote_currency\}/\{contract_addresses\}/) 
