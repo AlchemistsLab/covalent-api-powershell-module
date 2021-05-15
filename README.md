@@ -21,28 +21,28 @@ https://www.covalenthq.com/docs/api/
 8. Many functions have the pagination parameters `-PageNumber` and `-PageSize` which can be used to limit output
 9. Many functions have `ChainId` parameter. A list of supported blockchain networks can be found [here](https://www.covalenthq.com/docs/api/#overview--supported-networks) 
 
-### Functions and Respective API Endpoint
+### Functions and Respective API Endpoint ([doc](https://www.covalenthq.com/docs/api/))
 **Class A**
-- Get-TokenBalancesForAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/balances_v2/)
-- Get-HistoricalPortfolioValueOverTime - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/portfolio_v2/)
-- Get-Transactions - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/transactions_v2/)
-- Get-ERC20TokenTransfers - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/address/{address}/transfers_v2/)
-- Get-Block - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/block_v2/{block_height}/)
-- Get-BlockHeights - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/block_v2/{block_height}/)
-- Get-LogEventsByContractAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/events/address/{address}/)
-- Get-LogEventsByTopicHashes - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/events/topics/{topic}/)
-- Get-ExternalNFTMetadata - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/nft_metadata/{token_id}/)
-- Get-NFTTokenIDs - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/nft_token_ids/)
-- Get-NFTTransactions - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/nft_transactions/{token_id}/)
-- Get-ChangesInTokenHoldersBetweenTwoBlockHeights - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/token_holders_changes/)
-- Get-TokenHoldersAsOfBlockHeight - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/{address}/token_holders/)
-- Get-ContractMetadata - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/tokens/tokenlists/{id}/)
-- Get-TransactionByTxHash - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/{chain_id}/transaction_v2/{tx_hash}/)
+- Get-TokenBalancesForAddress - "Get token balances for address"
+- Get-HistoricalPortfolioValueOverTime - "Get historical portfolio value over time"
+- Get-Transactions - "Get transactions"
+- Get-ERC20TokenTransfers - "Get ERC20 token transfers"
+- Get-Block - "Get a block"
+- Get-BlockHeights - "Get block heights"
+- Get-LogEventsByContractAddress - "Get Log events by contract address"
+- Get-LogEventsByTopicHashes - "Get Log events by topic hash(es)"
+- Get-ExternalNFTMetadata - "Get external NFT metadata"
+- Get-NFTTokenIDs - "Get NFT Token IDs"
+- Get-NFTTransactions - "Get NFT Transactions"
+- Get-ChangesInTokenHoldersBetweenTwoBlockHeights - "Get changes in token holders between two block heights"
+- Get-TokenHoldersAsOfBlockHeight - "Get token holders as of a block height"
+- Get-ContractMetadata - "Get all contract metadata"
+- Get-TransactionByTxHash - "Get a transaction"
 
 **Pricing Endpoints**
-- Get-HistoricalPricesByAddress - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_address/{chain_id}/{quote_currency}/{contract_address}/)
-- Get-HistoricalPricesByAddresses - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_addresses/\{chain_id\}/\{quote_currency\}/\{contract_addresses\}/)
-- Get-HistoricalPricesByAddressesV2 - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical_by_addresses_v2/\{chain_id\}/\{quote_currency\}/\{contract_addresses\}/) 
-- Get-HistoricalPricesByTicker - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/historical/\{quote_currency\}/\{ticker_symbol\}/)
-- Get-SpotPrices - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/tickers/)
-- Get-PriceVolatility - [endpoint](https://www.covalenthq.com/docs/api/#get-/v1/pricing/volatility/)
+- Get-HistoricalPricesByAddress - "Get historical prices by address"
+- Get-HistoricalPricesByAddresses - "Get historical prices by addresses"
+- Get-HistoricalPricesByAddressesV2 - "Get historical prices by addresses v2"
+- Get-HistoricalPricesByTicker - "Get historical prices by ticker symbol"
+- Get-SpotPrices - "Get spot prices"
+- Get-PriceVolatility - "Get price volatility"
