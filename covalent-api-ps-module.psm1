@@ -44,632 +44,6 @@ function Confirm-APIToken {
 
 <#
 .SYNOPSIS
-Function returns historical prices for a contract_address in a particular chain and quote_currency.
-
-.DESCRIPTION
-Function returns historical prices for a contract_address in a particular chain and quote_currency. Can pass to and from to define a range, by default if they are omitted, it returns today's price.
-
-.PARAMETER ChainId
-Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
-
-.PARAMETER QuoteCurrency
-The requested fiat currency. Default is USD.
-
-.PARAMETER ContractAddress
-Smart contract address.
-
-.PARAMETER StartDay
-The start day of the historical price range.
-
-.PARAMETER EndDay
-The end day of the historical price range.
-
-.PARAMETER SortOrder
-Sort the prices in chronological order. By default, it's set to descending order. Possible values: Asc, Desc.
-
-.EXAMPLE
-Get-HistoricalPricesByAddress -ChainId 1 -QuoteCurrency "USD" -ContractAddress "0xc7283b66eb1eb5fb86327f08e1b5816b0720212b" -StartDay "2021-04-01" -EndDay "2021-05-01" -SortOrder "Asc"
-#>
-function Get-HistoricalPricesByAddress {
-    [CmdletBinding()]
-    [OutputType([PSCustomObject])]
-    param(
-        [Parameter(Mandatory = $true)]
-        [int]$ChainId,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
-        [String]$QuoteCurrency = $(if ($env:QUOTE_CURRENCY) {$env:QUOTE_CURRENCY} else {"USD"}),
-
-        [Parameter(Mandatory = $true)]
-        [String]$ContractAddress,
-
-        [Parameter(Mandatory = $false)]
-        [datetime]$StartDay,
-
-        [Parameter(Mandatory = $false)]
-        [datetime]$EndDay,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("Asc","Desc")]
-        [String]$SortOrder = "Desc",
-
-        ####### API token #######
-        [Parameter(Mandatory = $false)]
-        [String]$APIToken = $env:COVALENT_API_TOKEN,
-
-        ####### pagination parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -ge 0})]
-        [int]$PageNumber,
-        
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -gt 0})]
-        [int]$PageSize,
-
-        ####### common parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("JSON", "CSV")]
-        [String]$Format = $env:OUTPUT_FORMAT,
-
-        [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
-    )
-    BEGIN {
-        $uri = "$APIUrl/pricing/historical_by_address/$ChainId/$($QuoteCurrency.ToLower())/$($ContractAddress.Trim())/?&key=$APIToken"
-
-        if ($StartDay) {
-            $uri += "&from=$($StartDay.ToString('yyyy-MM-dd'))"
-        }
-
-        if ($EndDay) {
-            $uri += "&to=$($EndDay.ToString('yyyy-MM-dd'))"
-        }
-
-        if ($SortOrder -ieq "Asc") {
-            $uri += "&prices-at-asc=true"
-        }
-
-        ####### validating API token #######
-        Confirm-APIToken -APIToken $APIToken
-
-        ####### processing of the pagination parameters #######
-        if ($PageNumber) {
-            $uri += "&page-number=$PageNumber"
-        }
-
-        if ($PageSize) {
-            $uri += "&page-size=$PageSize"
-        }
-
-        ####### processing of the common parameters #######
-        if ($Format) {
-            $uri += "&format=$($Format.ToLower())"
-        }
-    }
-    PROCESS {
-        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
-    }
-    END {
-        Write-Output $responseOutput
-    }
-}
-
-<#
-.SYNOPSIS
-Function returns historical prices for a contract_address, or a comma-separated group of contract_addresses in a particular chain_id and quote_currency.
-
-.DESCRIPTION
-Function returns historical prices for a contract_address, or a comma-separated group of contract_addresses in a particular chain_id and quote_currency. Can pass to and from to define a range, by default if they are omitted, it returns today's price.
-
-.PARAMETER ChainId
-Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
-
-.PARAMETER QuoteCurrency
-The requested fiat currency. Default is USD.
-
-.PARAMETER ContractAddresses
-Smart contract address(es).
-
-.PARAMETER StartDay
-The start day of the historical price range.
-
-.PARAMETER EndDay
-The end day of the historical price range.
-
-.PARAMETER SortOrder
-Sort the prices in chronological order. By default, it's set to descending order. Possible values: Asc, Desc.
-
-.EXAMPLE
-Get-HistoricalPricesByAddresses -ChainId 1 -QuoteCurrency "USD" -ContractAddress "0xdac17f958d2ee523a2206206994597c13d831ec7,0xc7283b66eb1eb5fb86327f08e1b5816b0720212b" -StartDay "2021-04-01" -EndDay "2021-05-01" -SortOrder "Asc"
-#>
-function Get-HistoricalPricesByAddresses {
-    [CmdletBinding()]
-    [OutputType([PSCustomObject])]
-    param(
-        [Parameter(Mandatory = $true)]
-        [int]$ChainId,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
-        [String]$QuoteCurrency = $(if ($env:QUOTE_CURRENCY) {$env:QUOTE_CURRENCY} else {"USD"}),
-
-        [Parameter(Mandatory = $true)]
-        [String]$ContractAddresses,
-
-        [Parameter(Mandatory = $false)]
-        [datetime]$StartDay,
-
-        [Parameter(Mandatory = $false)]
-        [datetime]$EndDay,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("Asc","Desc")]
-        [String]$SortOrder = "Desc",
-
-        ####### API token #######
-        [Parameter(Mandatory = $false)]
-        [String]$APIToken = $env:COVALENT_API_TOKEN,
-
-        ####### pagination parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -ge 0})]
-        [int]$PageNumber,
-        
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -gt 0})]
-        [int]$PageSize,
-
-        ####### common parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("JSON", "CSV")]
-        [String]$Format = $env:OUTPUT_FORMAT,
-
-        [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
-    )
-    BEGIN {
-        # converting a comma-separated list into url compatible
-        $contractList = $ContractAddresses.Split(",").Trim() -join "%2C"
-
-        $uri = "$APIUrl/pricing/historical_by_addresses/$ChainId/$($QuoteCurrency.ToLower())/$contractList/?&key=$APIToken"
-
-        if ($StartDay) {
-            $uri += "&from=$($StartDay.ToString('yyyy-MM-dd'))"
-        }
-
-        if ($EndDay) {
-            $uri += "&to=$($EndDay.ToString('yyyy-MM-dd'))"
-        }
-
-        if ($SortOrder -ieq "Asc") {
-            $uri += "&prices-at-asc=true"
-        }
-
-        ####### validating API token #######
-        Confirm-APIToken -APIToken $APIToken
-
-        ####### processing of the pagination parameters #######
-        if ($PageNumber) {
-            $uri += "&page-number=$PageNumber"
-        }
-
-        if ($PageSize) {
-            $uri += "&page-size=$PageSize"
-        }
-
-        ####### processing of the common parameters #######
-        if ($Format) {
-            $uri += "&format=$($Format.ToLower())"
-        }
-    }
-    PROCESS {
-        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
-    }
-    END {
-        Write-Output $responseOutput
-    }
-}
-
-<#
-.SYNOPSIS
-Function returns historical prices for a contract_address, or a comma-separated group of contract_addresses in a particular chain_id and quote_currency.
-
-.DESCRIPTION
-Function returns historical prices for a contract_address, or a comma-separated group of contract_addresses in a particular chain_id and quote_currency. Can pass to and from to define a range, by default if they are omitted, it returns today's price.
-
-.PARAMETER ChainId
-Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
-
-.PARAMETER QuoteCurrency
-The requested fiat currency. Default is USD.
-
-.PARAMETER ContractAddresses
-Smart contract address(es).
-
-.PARAMETER StartDay
-The start day of the historical price range.
-
-.PARAMETER EndDay
-The end day of the historical price range.
-
-.PARAMETER SortOrder
-Sort the prices in chronological order. By default, it's set to descending order. Possible values: Asc, Desc.
-
-.EXAMPLE
-Get-HistoricalPricesByAddressesV2 -ChainId 1 -QuoteCurrency "USD" -ContractAddress "0xdac17f958d2ee523a2206206994597c13d831ec7,0xc7283b66eb1eb5fb86327f08e1b5816b0720212b" -StartDay "2021-04-01" -EndDay "2021-05-01" -SortOrder "Asc"
-#>
-function Get-HistoricalPricesByAddressesV2 {
-    [CmdletBinding()]
-    [OutputType([PSCustomObject])]
-    param(
-        [Parameter(Mandatory = $true)]
-        [int]$ChainId,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
-        [String]$QuoteCurrency = $(if ($env:QUOTE_CURRENCY) {$env:QUOTE_CURRENCY} else {"USD"}),
-
-        [Parameter(Mandatory = $true)]
-        [String]$ContractAddresses,
-
-        [Parameter(Mandatory = $false)]
-        [datetime]$StartDay,
-
-        [Parameter(Mandatory = $false)]
-        [datetime]$EndDay,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("Asc","Desc")]
-        [String]$SortOrder = "Desc",
-
-        ####### API token #######
-        [Parameter(Mandatory = $false)]
-        [String]$APIToken = $env:COVALENT_API_TOKEN,
-
-        ####### pagination parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -ge 0})]
-        [int]$PageNumber,
-        
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -gt 0})]
-        [int]$PageSize,
-
-        ####### common parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("JSON", "CSV")]
-        [String]$Format = $env:OUTPUT_FORMAT,
-
-        [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
-    )
-    BEGIN {
-        # converting a comma-separated list into url compatible
-        $contractList = $ContractAddresses.Split(",").Trim() -join "%2C"
-
-        $uri = "$APIUrl/pricing/historical_by_addresses_v2/$ChainId/$($QuoteCurrency.ToLower())/$contractList/?&key=$APIToken"
-
-        if ($StartDay) {
-            $uri += "&from=$($StartDay.ToString('yyyy-MM-dd'))"
-        }
-
-        if ($EndDay) {
-            $uri += "&to=$($EndDay.ToString('yyyy-MM-dd'))"
-        }
-
-        if ($SortOrder -ieq "Asc") {
-            $uri += "&prices-at-asc=true"
-        }
-
-        ####### validating API token #######
-        Confirm-APIToken -APIToken $APIToken
-
-        ####### processing of the pagination parameters #######
-        if ($PageNumber) {
-            $uri += "&page-number=$PageNumber"
-        }
-
-        if ($PageSize) {
-            $uri += "&page-size=$PageSize"
-        }
-
-        ####### processing of the common parameters #######
-        if ($Format) {
-            $uri += "&format=$($Format.ToLower())"
-        }
-    }
-    PROCESS {
-        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
-    }
-    END {
-        Write-Output $responseOutput
-    }
-}
-
-<#
-.SYNOPSIS
-Function returns historical prices for a ticker_symbol in a particular quote_currency.
-
-.DESCRIPTION
-Function returns historical prices for a ticker_symbol in a particular quote_currency. Can pass to and from to define a range, by default if they are omitted, it returns today's price.
-
-.PARAMETER QuoteCurrency
-The requested fiat currency. Default is USD.
-
-.PARAMETER Ticker
-Ticker symbol.
-
-.PARAMETER StartDay
-The start day of the historical price range.
-
-.PARAMETER EndDay
-The end day of the historical price range.
-
-.PARAMETER SortOrder
-Sort the prices in chronological order. By default, it's set to descending order. Possible values: Asc, Desc.
-
-.EXAMPLE
-Get-HistoricalPricesByTicker -QuoteCurrency "USD" -Ticker "TRIBE" -StartDay "2021-04-01" -EndDay "2021-05-01" -SortOrder "Asc"
-#>
-function Get-HistoricalPricesByTicker {
-    [CmdletBinding()]
-    [OutputType([PSCustomObject])]
-    param(
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
-        [String]$QuoteCurrency = $(if ($env:QUOTE_CURRENCY) {$env:QUOTE_CURRENCY} else {"USD"}),
-
-        [Parameter(Mandatory = $true)]
-        [String]$Ticker,
-
-        [Parameter(Mandatory = $false)]
-        [datetime]$StartDay,
-
-        [Parameter(Mandatory = $false)]
-        [datetime]$EndDay,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("Asc","Desc")]
-        [String]$SortOrder = "Desc",
-
-        ####### API token #######
-        [Parameter(Mandatory = $false)]
-        [String]$APIToken = $env:COVALENT_API_TOKEN,
-
-        ####### pagination parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -ge 0})]
-        [int]$PageNumber,
-        
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -gt 0})]
-        [int]$PageSize,
-
-        ####### common parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("JSON", "CSV")]
-        [String]$Format = $env:OUTPUT_FORMAT,
-
-        [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
-    )
-    BEGIN {
-        $uri = "$APIUrl/pricing/historical/$($QuoteCurrency.ToLower())/$($Ticker.Trim().ToLower())/?&key=$APIToken"
-
-        if ($StartDay) {
-            $uri += "&from=$($StartDay.ToString('yyyy-MM-dd'))"
-        }
-
-        if ($EndDay) {
-            $uri += "&to=$($EndDay.ToString('yyyy-MM-dd'))"
-        }
-
-        if ($SortOrder -ieq "Asc") {
-            $uri += "&prices-at-asc=true"
-        }
-
-        ####### validating API token #######
-        Confirm-APIToken -APIToken $APIToken
-
-        ####### processing of the pagination parameters #######
-        if ($PageNumber) {
-            $uri += "&page-number=$PageNumber"
-        }
-
-        if ($PageSize) {
-            $uri += "&page-size=$PageSize"
-        }
-
-        ####### processing of the common parameters #######
-        if ($Format) {
-            $uri += "&format=$($Format.ToLower())"
-        }
-    }
-    PROCESS {
-        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
-    }
-    END {
-        Write-Output $responseOutput
-    }
-}
-
-<#
-.SYNOPSIS
-Function returns spot prices and metadata for all tickers or a select group of tickers.
-
-.DESCRIPTION
-Function returns spot prices and metadata for all tickers or a select group of tickers. Without tickers query param, it returns a paginated list of all tickers sorted by market cap.
-
-.PARAMETER Tickers
-Comma-separated list of tickers. If empty, all available tickers are returned.
-
-.EXAMPLE
-Get-SpotPrices -Tickers ""
-Get-SpotPrices -Tickers "TRIBE,MATIC,1INCH"
-#>
-function Get-SpotPrices {
-    [CmdletBinding()]
-    [OutputType([PSCustomObject])]
-    param(
-        [Parameter(Mandatory = $false)]
-        [String]$Tickers,
-
-        ####### API token #######
-        [Parameter(Mandatory = $false)]
-        [String]$APIToken = $env:COVALENT_API_TOKEN,
-
-        ####### pagination parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -ge 0})]
-        [int]$PageNumber,
-        
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -gt 0})]
-        [int]$PageSize,
-
-        ####### common parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
-        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("JSON", "CSV")]
-        [String]$Format = $env:OUTPUT_FORMAT,
-
-        [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
-    )
-    BEGIN {
-        $uri = "$APIUrl/pricing/tickers/?&key=$APIToken"
-
-        # converting a comma-separated list into url compatible
-        if ($Tickers) {
-            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
-
-            if ($tickerList.Replace("%2C","")) {
-                $uri += "&tickers=$tickerList"
-            }
-        }
-
-        ####### validating API token #######
-        Confirm-APIToken -APIToken $APIToken
-
-        ####### processing of the pagination parameters #######
-        if ($PageNumber) {
-            $uri += "&page-number=$PageNumber"
-        }
-
-        if ($PageSize) {
-            $uri += "&page-size=$PageSize"
-        }
-
-        ####### processing of the common parameters #######
-        if ($QuoteCurrency) {
-            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
-        }
-
-        if ($Format) {
-            $uri += "&format=$($Format.ToLower())"
-        }
-    }
-    PROCESS {
-        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
-    }
-    END {
-        Write-Output $responseOutput
-    }
-}
-
-<#
-.SYNOPSIS
-Function returns price volatility and metadata for a select group of tickers.
-
-.DESCRIPTION
-Function returns price volatility and metadata for a select group of tickers. Without the tickers query param, it defaults to ETH volatility.
-
-.PARAMETER Tickers
-Comma-separated list of tickers. If empty, all available tickers are returned.
-
-.EXAMPLE
-Get-PriceVolatility -Tickers ""
-Get-PriceVolatility -Tickers "TRIBE,MATIC,1INCH"
-#>
-function Get-PriceVolatility {
-    [CmdletBinding()]
-    [OutputType([PSCustomObject])]
-    param(
-        [Parameter(Mandatory = $false)]
-        [String]$Tickers,
-
-        ####### API token #######
-        [Parameter(Mandatory = $false)]
-        [String]$APIToken = $env:COVALENT_API_TOKEN,
-
-        ####### pagination parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -ge 0})]
-        [int]$PageNumber,
-        
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({$_ -gt 0})]
-        [int]$PageSize,
-
-        ####### common parameters #######
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
-        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet("JSON", "CSV")]
-        [String]$Format = $env:OUTPUT_FORMAT,
-
-        [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
-    )
-    BEGIN {
-        $uri = "$APIUrl/pricing/volatility/?&key=$APIToken"
-
-        # converting a comma-separated list into url compatible
-        if ($Tickers) {
-            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
-
-            if ($tickerList.Replace("%2C","")) {
-                $uri += "&tickers=$tickerList"
-            }
-        }
-
-        ####### validating API token #######
-        Confirm-APIToken -APIToken $APIToken
-
-        ####### processing of the pagination parameters #######
-        if ($PageNumber) {
-            $uri += "&page-number=$PageNumber"
-        }
-
-        if ($PageSize) {
-            $uri += "&page-size=$PageSize"
-        }
-
-        ####### processing of the common parameters #######
-        if ($QuoteCurrency) {
-            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
-        }
-
-        if ($Format) {
-            $uri += "&format=$($Format.ToLower())"
-        }
-    }
-    PROCESS {
-        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
-    }
-    END {
-        Write-Output $responseOutput
-    }
-}
-
-<#
-.SYNOPSIS
 Function returns a list of all ERC20 and NFT token balances for address along with their current spot prices. 
 
 .DESCRIPTION
@@ -2020,4 +1394,2238 @@ function Get-TransactionByTxHash {
     }
 }
 
-Export-ModuleMember -Function Get-HistoricalPricesByAddress, Get-HistoricalPricesByAddresses, Get-HistoricalPricesByAddressesV2, Get-HistoricalPricesByTicker, Get-SpotPrices, Get-PriceVolatility, Get-TokenBalancesForAddress, Get-HistoricalPortfolioValueOverTime, Get-Transactions, Get-ERC20TokenTransfers, Get-Block, Get-BlockHeights, Get-LogEventsByContractAddress, Get-LogEventsByTopicHashes, Get-ExternalNFTMetadata, Get-NFTTokenIDs, Get-NFTTransactions, Get-ChangesInTokenHoldersBetweenTwoBlockHeights, Get-TokenHoldersAsOfBlockHeight, Get-ContractMetadata, Get-TransactionByTxHash
+<#
+.SYNOPSIS
+Function returns Sushiswap address exchange liquidity transactions.
+
+.DESCRIPTION
+Function returns Sushiswap address exchange liquidity transactions.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER Address
+Wallet address.
+
+.PARAMETER Swaps
+Get additional insight on swap event data related to this address, default: $false
+
+.EXAMPLE
+Get-SushiswapAddressExchangeLiquidityTransactions -ChainId 137 -Address "0x4121dD930B15742b6d2e89B41284A79320bb8503" -Swaps $true
+#>
+function Get-SushiswapAddressExchangeLiquidityTransactions {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        [Parameter(Mandatory = $false)]
+        [bool]$Swaps = $false,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/stacks/sushiswap/acts/?&key=$APIToken"
+
+        if ($Swaps) {
+            $uri += "&swaps=true"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Sushiswap address exchange balances.
+
+.DESCRIPTION
+Function returns Sushiswap address exchange balances.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-SushiswapAddressExchangeBalances -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-SushiswapAddressExchangeBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/stacks/sushiswap/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns a paginated list of Sushiswap pools sorted by exchange volume.
+
+.DESCRIPTION
+Function returns a paginated list of Sushiswap pools sorted by exchange volume. If $Tickers (a comma separated list) is present, only return the pools that contain these tickers.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER Tickers
+If tickers (a comma separated list) is present, only return the pools that contain these tickers.
+
+.EXAMPLE
+Get-SushiswapNetworkAssets -ChainId 1 -Tickers "1INCH,ANKR"
+Get-SushiswapNetworkAssets -ChainId 250
+#>
+function Get-SushiswapNetworkAssets {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Tickers,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/$ChainId/networks/sushiswap/assets/?&key=$APIToken"
+
+        # converting a comma-separated list into url compatible
+        if ($Tickers) {
+            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+
+            if ($tickerList.Replace("%2C","")) {
+                $uri += "&tickers=$tickerList"
+            }
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Aave v2 address balances, supply and borrow positions.
+
+.DESCRIPTION
+Function returns Aave v2 address balances, supply and borrow positions.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-AaveV2AddressBalances -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-AaveV2AddressBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/aave_v2/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Aave address balances.
+
+.DESCRIPTION
+Function returns Aave address balances.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-AaveAddressBalances -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-AaveAddressBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/aave/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Balancer exchange address balances.
+
+.DESCRIPTION
+Function returns Balancer exchange address balances.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-BalancerExchangeAddressBalances -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-BalancerExchangeAddressBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/balancer/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Compound address activity.
+
+.DESCRIPTION
+Function returns Compound address activity.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-CompoundAddressActivity -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-CompoundAddressActivity {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/compound/acts/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Compound address balances.
+
+.DESCRIPTION
+Function returns Compound address balances.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-CompoundAddressBalances -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-CompoundAddressBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/compound/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Curve address balances.
+
+.DESCRIPTION
+Function returns Curve address balances.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-CurveAddressBalances -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-CurveAddressBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/curve/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns farming positions on Uniswap, Sushiswap, and Harvest.
+
+.DESCRIPTION
+Function returns farming positions on Uniswap, Sushiswap, and Harvest.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-FarmingStats -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-FarmingStats {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/farming/positions/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Uniswap v1 address exchange balances. 
+
+.DESCRIPTION
+Function returns Uniswap v1 address exchange balances. 
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-UniswapV1AddressExchangeBalances -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-UniswapV1AddressExchangeBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/uniswap_v1/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Uniswap v2 address exchange balances. 
+
+.DESCRIPTION
+Function returns Uniswap v2 address exchange balances. 
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-UniswapV2AddressExchangeBalances -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
+#>
+function Get-UniswapV2AddressExchangeBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/uniswap_v2/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Uniswap v2 address exchange liquidity transactions.
+
+.DESCRIPTION
+Function returns Uniswap v2 address exchange liquidity transactions.
+
+.PARAMETER Address
+Wallet address.
+
+.PARAMETER Swaps
+Get additional insight on swap event data related to this address, default: $false
+
+.EXAMPLE
+Get-UniswapV2AddressExchangeLiquidityTransactions -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae" -Swaps $true
+#>
+function Get-UniswapV2AddressExchangeLiquidityTransactions {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        [Parameter(Mandatory = $false)]
+        [bool]$Swaps = $false,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/address/$($Address.Trim().ToLower())/stacks/uniswap_v2/acts/?&key=$APIToken"
+
+        if ($Swaps) {
+            $uri += "&swaps=true"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Aave v2 network assets.
+
+.DESCRIPTION
+Function returns Aave v2 network assets.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-AaveV2NetworkAssets
+#>
+function Get-AaveV2NetworkAssets {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/networks/aave_v2/assets/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Aave network assets.
+
+.DESCRIPTION
+Function returns Aave network assets.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-AaveNetworkAssets
+#>
+function Get-AaveNetworkAssets {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/networks/aave/assets/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Augur market affiliate fee divisors
+
+.DESCRIPTION
+Function returns Augur market affiliate fee divisors
+
+.EXAMPLE
+Get-AugurMarketAffiliateFeeDivisors
+#>
+function Get-AugurMarketAffiliateFeeDivisors {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/networks/augur/affiliate_fee/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Compound network assets.
+
+.DESCRIPTION
+Function returns Compound network assets.
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-CompoundNetworkAssets
+#>
+function Get-CompoundNetworkAssets {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/networks/compound/assets/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns a paginated list of Uniswap pools sorted by exchange volume.
+
+.DESCRIPTION
+Function returns a paginated list of Uniswap pools sorted by exchange volume. If $Tickers (a comma separated list) is present, only return the pools that contain these tickers.
+
+.PARAMETER Tickers
+If tickers (a comma separated list) is present, only return the pools that contain these tickers.
+
+.EXAMPLE
+Get-UniswapV2NetworkAssets -Tickers "1INCH,ANKR"
+#>
+function Get-UniswapV2NetworkAssets {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $false)]
+        [String]$Tickers,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/1/networks/uniswap_v2/assets/?&key=$APIToken"
+
+        # converting a comma-separated list into url compatible
+        if ($Tickers) {
+            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+
+            if ($tickerList.Replace("%2C","")) {
+                $uri += "&tickers=$tickerList"
+            }
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Pancakeswap V2 address exchange balances. 
+
+.DESCRIPTION
+Function returns Pancakeswap V2 address exchange balances. 
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-PancakeswapV2AddressExchangeBalances -Address "0x085bc434707cf6ae616948ffeee200ccdff15c1a"
+#>
+function Get-PancakeswapV2AddressExchangeBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/56/address/$($Address.Trim().ToLower())/stacks/pancakeswap_v2/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Pancakeswap address exchange balances. 
+
+.DESCRIPTION
+Function returns Pancakeswap address exchange balances. 
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-PancakeswapAddressExchangeBalances -Address "0x085bc434707cf6ae616948ffeee200ccdff15c1a"
+#>
+function Get-PancakeswapAddressExchangeBalances {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/56/address/$($Address.Trim().ToLower())/stacks/pancakeswap/balances/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Pancakeswap address exchange liquidity transactions.
+
+.DESCRIPTION
+Function returns Pancakeswap address exchange liquidity transactions.
+
+.PARAMETER Address
+Wallet address.
+
+.PARAMETER Swaps
+Get additional insight on swap event data related to this address, default: $false
+
+.EXAMPLE
+Get-PancakeswapAddressExchangeLiquidityTransactions -Address "0x085bc434707cf6ae616948ffeee200ccdff15c1a" -Swaps $true
+#>
+function Get-PancakeswapAddressExchangeLiquidityTransactions {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        [Parameter(Mandatory = $false)]
+        [bool]$Swaps = $false,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/56/address/$($Address.Trim().ToLower())/stacks/pancakeswap/acts/?&key=$APIToken"
+
+        if ($Swaps) {
+            $uri += "&swaps=true"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns a paginated list of Pancake V2 pools sorted by exchange volume. Only pools with swaps in the last 24 hours are included. 
+
+.DESCRIPTION
+Function returns a paginated list of Pancake V2 pools sorted by exchange volume. Only pools with swaps in the last 24 hours are included. 
+
+.PARAMETER Tickers
+If tickers (a comma separated list) is present, only return the pools that contain these tickers.
+
+.EXAMPLE
+Get-PancakeswapV2NetworkAssets -Tickers "1INCH,ANKR"
+#>
+function Get-PancakeswapV2NetworkAssets {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $false)]
+        [String]$Tickers,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/56/networks/pancakeswap_v2/assets/?&key=$APIToken"
+
+        # converting a comma-separated list into url compatible
+        if ($Tickers) {
+            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+
+            if ($tickerList.Replace("%2C","")) {
+                $uri += "&tickers=$tickerList"
+            }
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns a paginated list of Pancake pools sorted by exchange volume. Only pools with swaps in the last 24 hours are included. 
+
+.DESCRIPTION
+Function returns a paginated list of Pancake pools sorted by exchange volume. Only pools with swaps in the last 24 hours are included. 
+
+.PARAMETER Tickers
+If tickers (a comma separated list) is present, only return the pools that contain these tickers.
+
+.EXAMPLE
+Get-PancakeswapNetworkAssets -Tickers "1INCH,ANKR"
+#>
+function Get-PancakeswapNetworkAssets {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $false)]
+        [String]$Tickers,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/56/networks/pancakeswap/assets/?&key=$APIToken"
+
+        # converting a comma-separated list into url compatible
+        if ($Tickers) {
+            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+
+            if ($tickerList.Replace("%2C","")) {
+                $uri += "&tickers=$tickerList"
+            }
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns Pancakeswap V2 network asset by address
+
+.DESCRIPTION
+Function returns Pancakeswap V2 network asset by address
+
+.PARAMETER Address
+Wallet address.
+
+.EXAMPLE
+Get-PancakeswapV2NetworkAssetByAddress -Address "0x16b9a82891338f9ba80e2d6970fdda79d1eb0dae"
+#>
+function Get-PancakeswapV2NetworkAssetByAddress {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]$Address,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/56/networks/pancakeswap_v2/assets/$($Address.Trim().ToLower())/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns historical prices for a contract_address in a particular chain and quote_currency.
+
+.DESCRIPTION
+Function returns historical prices for a contract_address in a particular chain and quote_currency. Can pass to and from to define a range, by default if they are omitted, it returns today's price.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER QuoteCurrency
+The requested fiat currency. Default is USD.
+
+.PARAMETER ContractAddress
+Smart contract address.
+
+.PARAMETER StartDay
+The start day of the historical price range.
+
+.PARAMETER EndDay
+The end day of the historical price range.
+
+.PARAMETER SortOrder
+Sort the prices in chronological order. By default, it's set to descending order. Possible values: Asc, Desc.
+
+.EXAMPLE
+Get-HistoricalPricesByAddress -ChainId 1 -QuoteCurrency "USD" -ContractAddress "0xc7283b66eb1eb5fb86327f08e1b5816b0720212b" -StartDay "2021-04-01" -EndDay "2021-05-01" -SortOrder "Asc"
+#>
+function Get-HistoricalPricesByAddress {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $(if ($env:QUOTE_CURRENCY) {$env:QUOTE_CURRENCY} else {"USD"}),
+
+        [Parameter(Mandatory = $true)]
+        [String]$ContractAddress,
+
+        [Parameter(Mandatory = $false)]
+        [datetime]$StartDay,
+
+        [Parameter(Mandatory = $false)]
+        [datetime]$EndDay,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("Asc","Desc")]
+        [String]$SortOrder = "Desc",
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/pricing/historical_by_address/$ChainId/$($QuoteCurrency.ToLower())/$($ContractAddress.Trim())/?&key=$APIToken"
+
+        if ($StartDay) {
+            $uri += "&from=$($StartDay.ToString('yyyy-MM-dd'))"
+        }
+
+        if ($EndDay) {
+            $uri += "&to=$($EndDay.ToString('yyyy-MM-dd'))"
+        }
+
+        if ($SortOrder -ieq "Asc") {
+            $uri += "&prices-at-asc=true"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns historical prices for a contract_address, or a comma-separated group of contract_addresses in a particular chain_id and quote_currency.
+
+.DESCRIPTION
+Function returns historical prices for a contract_address, or a comma-separated group of contract_addresses in a particular chain_id and quote_currency. Can pass to and from to define a range, by default if they are omitted, it returns today's price.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER QuoteCurrency
+The requested fiat currency. Default is USD.
+
+.PARAMETER ContractAddresses
+Smart contract address(es).
+
+.PARAMETER StartDay
+The start day of the historical price range.
+
+.PARAMETER EndDay
+The end day of the historical price range.
+
+.PARAMETER SortOrder
+Sort the prices in chronological order. By default, it's set to descending order. Possible values: Asc, Desc.
+
+.EXAMPLE
+Get-HistoricalPricesByAddresses -ChainId 1 -QuoteCurrency "USD" -ContractAddress "0xdac17f958d2ee523a2206206994597c13d831ec7,0xc7283b66eb1eb5fb86327f08e1b5816b0720212b" -StartDay "2021-04-01" -EndDay "2021-05-01" -SortOrder "Asc"
+#>
+function Get-HistoricalPricesByAddresses {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $(if ($env:QUOTE_CURRENCY) {$env:QUOTE_CURRENCY} else {"USD"}),
+
+        [Parameter(Mandatory = $true)]
+        [String]$ContractAddresses,
+
+        [Parameter(Mandatory = $false)]
+        [datetime]$StartDay,
+
+        [Parameter(Mandatory = $false)]
+        [datetime]$EndDay,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("Asc","Desc")]
+        [String]$SortOrder = "Desc",
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        # converting a comma-separated list into url compatible
+        $contractList = $ContractAddresses.Split(",").Trim() -join "%2C"
+
+        $uri = "$APIUrl/pricing/historical_by_addresses/$ChainId/$($QuoteCurrency.ToLower())/$contractList/?&key=$APIToken"
+
+        if ($StartDay) {
+            $uri += "&from=$($StartDay.ToString('yyyy-MM-dd'))"
+        }
+
+        if ($EndDay) {
+            $uri += "&to=$($EndDay.ToString('yyyy-MM-dd'))"
+        }
+
+        if ($SortOrder -ieq "Asc") {
+            $uri += "&prices-at-asc=true"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns historical prices for a contract_address, or a comma-separated group of contract_addresses in a particular chain_id and quote_currency.
+
+.DESCRIPTION
+Function returns historical prices for a contract_address, or a comma-separated group of contract_addresses in a particular chain_id and quote_currency. Can pass to and from to define a range, by default if they are omitted, it returns today's price.
+
+.PARAMETER ChainId
+Chain ID of the Blockchain being queried. https://www.covalenthq.com/docs/api/#overview--supported-networks
+
+.PARAMETER QuoteCurrency
+The requested fiat currency. Default is USD.
+
+.PARAMETER ContractAddresses
+Smart contract address(es).
+
+.PARAMETER StartDay
+The start day of the historical price range.
+
+.PARAMETER EndDay
+The end day of the historical price range.
+
+.PARAMETER SortOrder
+Sort the prices in chronological order. By default, it's set to descending order. Possible values: Asc, Desc.
+
+.EXAMPLE
+Get-HistoricalPricesByAddressesV2 -ChainId 1 -QuoteCurrency "USD" -ContractAddress "0xdac17f958d2ee523a2206206994597c13d831ec7,0xc7283b66eb1eb5fb86327f08e1b5816b0720212b" -StartDay "2021-04-01" -EndDay "2021-05-01" -SortOrder "Asc"
+#>
+function Get-HistoricalPricesByAddressesV2 {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ChainId,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $(if ($env:QUOTE_CURRENCY) {$env:QUOTE_CURRENCY} else {"USD"}),
+
+        [Parameter(Mandatory = $true)]
+        [String]$ContractAddresses,
+
+        [Parameter(Mandatory = $false)]
+        [datetime]$StartDay,
+
+        [Parameter(Mandatory = $false)]
+        [datetime]$EndDay,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("Asc","Desc")]
+        [String]$SortOrder = "Desc",
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        # converting a comma-separated list into url compatible
+        $contractList = $ContractAddresses.Split(",").Trim() -join "%2C"
+
+        $uri = "$APIUrl/pricing/historical_by_addresses_v2/$ChainId/$($QuoteCurrency.ToLower())/$contractList/?&key=$APIToken"
+
+        if ($StartDay) {
+            $uri += "&from=$($StartDay.ToString('yyyy-MM-dd'))"
+        }
+
+        if ($EndDay) {
+            $uri += "&to=$($EndDay.ToString('yyyy-MM-dd'))"
+        }
+
+        if ($SortOrder -ieq "Asc") {
+            $uri += "&prices-at-asc=true"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns historical prices for a ticker_symbol in a particular quote_currency.
+
+.DESCRIPTION
+Function returns historical prices for a ticker_symbol in a particular quote_currency. Can pass to and from to define a range, by default if they are omitted, it returns today's price.
+
+.PARAMETER QuoteCurrency
+The requested fiat currency. Default is USD.
+
+.PARAMETER Ticker
+Ticker symbol.
+
+.PARAMETER StartDay
+The start day of the historical price range.
+
+.PARAMETER EndDay
+The end day of the historical price range.
+
+.PARAMETER SortOrder
+Sort the prices in chronological order. By default, it's set to descending order. Possible values: Asc, Desc.
+
+.EXAMPLE
+Get-HistoricalPricesByTicker -QuoteCurrency "USD" -Ticker "TRIBE" -StartDay "2021-04-01" -EndDay "2021-05-01" -SortOrder "Asc"
+#>
+function Get-HistoricalPricesByTicker {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $(if ($env:QUOTE_CURRENCY) {$env:QUOTE_CURRENCY} else {"USD"}),
+
+        [Parameter(Mandatory = $true)]
+        [String]$Ticker,
+
+        [Parameter(Mandatory = $false)]
+        [datetime]$StartDay,
+
+        [Parameter(Mandatory = $false)]
+        [datetime]$EndDay,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("Asc","Desc")]
+        [String]$SortOrder = "Desc",
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/pricing/historical/$($QuoteCurrency.ToLower())/$($Ticker.Trim().ToLower())/?&key=$APIToken"
+
+        if ($StartDay) {
+            $uri += "&from=$($StartDay.ToString('yyyy-MM-dd'))"
+        }
+
+        if ($EndDay) {
+            $uri += "&to=$($EndDay.ToString('yyyy-MM-dd'))"
+        }
+
+        if ($SortOrder -ieq "Asc") {
+            $uri += "&prices-at-asc=true"
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns spot prices and metadata for all tickers or a select group of tickers.
+
+.DESCRIPTION
+Function returns spot prices and metadata for all tickers or a select group of tickers. Without tickers query param, it returns a paginated list of all tickers sorted by market cap.
+
+.PARAMETER Tickers
+Comma-separated list of tickers. If empty, all available tickers are returned.
+
+.EXAMPLE
+Get-SpotPrices -Tickers ""
+Get-SpotPrices -Tickers "TRIBE,MATIC,1INCH"
+#>
+function Get-SpotPrices {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $false)]
+        [String]$Tickers,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/pricing/tickers/?&key=$APIToken"
+
+        # converting a comma-separated list into url compatible
+        if ($Tickers) {
+            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+
+            if ($tickerList.Replace("%2C","")) {
+                $uri += "&tickers=$tickerList"
+            }
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns price volatility and metadata for a select group of tickers.
+
+.DESCRIPTION
+Function returns price volatility and metadata for a select group of tickers. Without the tickers query param, it defaults to ETH volatility.
+
+.PARAMETER Tickers
+Comma-separated list of tickers. If empty, all available tickers are returned.
+
+.EXAMPLE
+Get-PriceVolatility -Tickers ""
+Get-PriceVolatility -Tickers "TRIBE,MATIC,1INCH"
+#>
+function Get-PriceVolatility {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory = $false)]
+        [String]$Tickers,
+
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### pagination parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -ge 0})]
+        [int]$PageNumber,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({$_ -gt 0})]
+        [int]$PageSize,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("USD","CAD","EUR","SGD","INR","JPY","VND","CNY","KRW","RUB","TRY","ETH")]
+        [String]$QuoteCurrency = $env:QUOTE_CURRENCY,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/pricing/volatility/?&key=$APIToken"
+
+        # converting a comma-separated list into url compatible
+        if ($Tickers) {
+            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+
+            if ($tickerList.Replace("%2C","")) {
+                $uri += "&tickers=$tickerList"
+            }
+        }
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the pagination parameters #######
+        if ($PageNumber) {
+            $uri += "&page-number=$PageNumber"
+        }
+
+        if ($PageSize) {
+            $uri += "&page-size=$PageSize"
+        }
+
+        ####### processing of the common parameters #######
+        if ($QuoteCurrency) {
+            $uri += "&quote-currency=$($QuoteCurrency.ToLower())"
+        }
+
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+# export functions
+$functionList = @()
+$functionList += @("Get-TokenBalancesForAddress", "Get-HistoricalPortfolioValueOverTime", "Get-Transactions", "Get-ERC20TokenTransfers")
+$functionList += @("Get-Block", "Get-BlockHeights", "Get-LogEventsByContractAddress", "Get-LogEventsByTopicHashes", "Get-ExternalNFTMetadata")
+$functionList += @("Get-NFTTokenIDs", "Get-NFTTransactions", "Get-ChangesInTokenHoldersBetweenTwoBlockHeights", "Get-TokenHoldersAsOfBlockHeight")
+$functionList += @("Get-ContractMetadata", "Get-TransactionByTxHash", "Get-SushiswapAddressExchangeLiquidityTransactions", "Get-SushiswapAddressExchangeBalances")
+$functionList += @("Get-SushiswapNetworkAssets", "Get-AaveV2AddressBalances", "Get-AaveAddressBalances", "Get-BalancerExchangeAddressBalances")
+$functionList += @("Get-CompoundAddressActivity", "Get-CompoundAddressBalances", "Get-CurveAddressBalances", "Get-FarmingStats")
+$functionList += @("Get-UniswapV1AddressExchangeBalances", "Get-UniswapV2AddressExchangeBalances", "Get-UniswapV2AddressExchangeLiquidityTransactions")
+$functionList += @("Get-AaveV2NetworkAssets", "Get-AaveNetworkAssets", "Get-AugurMarketAffiliateFeeDivisors", "Get-CompoundNetworkAssets", "Get-UniswapV2NetworkAssets")
+$functionList += @("Get-PancakeswapV2AddressExchangeBalances", "Get-PancakeswapAddressExchangeBalances", "Get-PancakeswapAddressExchangeLiquidityTransactions")
+$functionList += @("Get-PancakeswapV2NetworkAssets", "Get-PancakeswapNetworkAssets", "Get-PancakeswapV2NetworkAssetByAddress")
+$functionList += @("Get-HistoricalPricesByAddress", "Get-HistoricalPricesByAddresses", "Get-HistoricalPricesByAddressesV2")
+$functionList += @("Get-HistoricalPricesByTicker", "Get-SpotPrices", "Get-PriceVolatility")
+Export-ModuleMember -Function $functionList
