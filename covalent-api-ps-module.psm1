@@ -62,8 +62,8 @@ Set to true to return ERC721 and ERC1155 assets. Defaults to false.
 Set to true to skip fetching NFT metadata, which can result in faster responses. Defaults to false and only applies when IncludeNft is true.
 
 .EXAMPLE
-Get-TokenBalancesForAddress -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae"
-Get-TokenBalancesForAddress -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae" -IncludeNft $true -NoNftFetch $false
+Get-TokenBalancesForAddress -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae" -Limit 1
+Get-TokenBalancesForAddress -ChainId 1 -Address "0x5a6d3b6bf795a3160dc7c139dee9f60ce0f00cae" -IncludeNft $true -NoNftFetch $false -Match '{"type": "nft"}'
 #>
 function Get-TokenBalancesForAddress {
     [CmdletBinding()]
@@ -95,7 +95,26 @@ function Get-TokenBalancesForAddress {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/balances_v2/?&key=$APIToken"
@@ -118,6 +137,31 @@ function Get-TokenBalancesForAddress {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -168,7 +212,26 @@ function Get-HistoricalPortfolioValueOverTime {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/portfolio_v2/?&key=$APIToken"
@@ -183,6 +246,31 @@ function Get-HistoricalPortfolioValueOverTime {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -255,7 +343,26 @@ function Get-Transactions {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/transactions_v2/?&key=$APIToken"
@@ -287,6 +394,31 @@ function Get-Transactions {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -352,7 +484,26 @@ function Get-ERC20TokenTransfers {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/address/$($Address.Trim().ToLower())/transfers_v2/?&key=$APIToken"
@@ -380,6 +531,31 @@ function Get-ERC20TokenTransfers {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -427,7 +603,26 @@ function Get-Block {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         if ($BlockHeight) {
@@ -445,6 +640,31 @@ function Get-Block {
         ####### processing of the common parameters #######
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -507,7 +727,26 @@ function Get-BlockHeights {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $startDateString = $StartDate.ToString('yyyy-MM-ddTHH:mm:ssZ').Replace(":","%3A")
@@ -536,6 +775,31 @@ function Get-BlockHeights {
         ####### processing of the common parameters #######
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -607,7 +871,26 @@ function Get-LogEventsByContractAddress {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/events/address/$($ContractAddress.Trim().ToLower())/?&key=$APIToken"
@@ -642,6 +925,31 @@ function Get-LogEventsByContractAddress {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -719,7 +1027,26 @@ function Get-LogEventsByTopicHashes {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         # converting a comma-separated list into url compatible
@@ -761,6 +1088,31 @@ function Get-LogEventsByTopicHashes {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -817,7 +1169,26 @@ function Get-ExternalNFTMetadata {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/tokens/$($ContractAddress.Trim().ToLower())/nft_metadata/$($TokenId.Trim().ToLower())/?&key=$APIToken"
@@ -832,6 +1203,31 @@ function Get-ExternalNFTMetadata {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -891,7 +1287,26 @@ function Get-NFTTokenIDs {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/tokens/$($ContractAddress.Trim().ToLower())/nft_token_ids/?&key=$APIToken"
@@ -915,6 +1330,31 @@ function Get-NFTTokenIDs {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -980,7 +1420,26 @@ function Get-NFTTransactions {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/tokens/$($ContractAddress.Trim().ToLower())/nft_transactions/$($TokenId.Trim().ToLower())/?&key=$APIToken"
@@ -1004,6 +1463,31 @@ function Get-NFTTransactions {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -1075,7 +1559,26 @@ function Get-ChangesInTokenHoldersBetweenTwoBlockHeights {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/tokens/$($ContractAddress.Trim().ToLower())/token_holders_changes/?&key=$APIToken"
@@ -1110,6 +1613,31 @@ function Get-ChangesInTokenHoldersBetweenTwoBlockHeights {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -1175,7 +1703,26 @@ function Get-TokenHoldersAsOfBlockHeight {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/tokens/$($ContractAddress.Trim().ToLower())/token_holders/?&key=$APIToken"
@@ -1208,6 +1755,31 @@ function Get-TokenHoldersAsOfBlockHeight {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -1267,7 +1839,26 @@ function Get-ContractMetadata {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/tokens/tokenlists/$($ContractAddress.Trim().ToLower())/?&key=$APIToken"
@@ -1291,6 +1882,31 @@ function Get-ContractMetadata {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -1356,7 +1972,26 @@ function Get-TransactionByTxHash {
         [String]$Format = $env:OUTPUT_FORMAT,
 
         [Parameter(Mandatory = $false)]
-        [String]$APIUrl = $script:COVALENT_API_URL
+        [String]$APIUrl = $script:COVALENT_API_URL,
+
+        ####### Primer parameters #######
+        [Parameter(Mandatory = $false)]
+        [String]$Primer,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Match,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Group,
+
+        [Parameter(Mandatory = $false)]
+        [String]$Sort,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Skip,
+
+        [Parameter(Mandatory = $false)]
+        [int]$Limit
     )
     BEGIN {
         $uri = "$APIUrl/$ChainId/transaction_v2/$($TxHash.Trim().ToLower())/?&key=$APIToken"
@@ -1384,6 +2019,31 @@ function Get-TransactionByTxHash {
 
         if ($Format) {
             $uri += "&format=$($Format.ToLower())"
+        }
+
+        ####### processing of the Primer parameters #######
+        if ($Primer) {
+            $uri += "&primer=$([uri]::EscapeUriString($Primer))"
+        }
+
+        if ($Match) {
+            $uri += "&match=$([uri]::EscapeUriString($Match))"
+        }
+
+        if ($Group) {
+            $uri += "&group=$([uri]::EscapeUriString($Group))"
+        }
+
+        if ($Sort) {
+            $uri += "&sort=$([uri]::EscapeUriString($Sort))"
+        }
+
+        if ($Skip) {
+            $uri += "&skip=$Skip"
+        }
+
+        if ($Limit) {
+            $uri += "&limit=$Limit"
         }
     }
     PROCESS {
@@ -1591,7 +2251,7 @@ function Get-SushiswapNetworkAssets {
 
         # converting a comma-separated list into url compatible
         if ($Tickers) {
-            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+            $tickerList = ($Tickers.Split(",").Trim() -join "%2C").Replace(" ","+")
 
             if ($tickerList.Replace("%2C","")) {
                 $uri += "&tickers=$tickerList"
@@ -2516,7 +3176,7 @@ function Get-UniswapV2NetworkAssets {
 
         # converting a comma-separated list into url compatible
         if ($Tickers) {
-            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+            $tickerList = ($Tickers.Split(",").Trim() -join "%2C").Replace(" ","+")
 
             if ($tickerList.Replace("%2C","")) {
                 $uri += "&tickers=$tickerList"
@@ -2789,7 +3449,7 @@ function Get-PancakeswapV2NetworkAssets {
 
         # converting a comma-separated list into url compatible
         if ($Tickers) {
-            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+            $tickerList = ($Tickers.Split(",").Trim() -join "%2C").Replace(" ","+")
 
             if ($tickerList.Replace("%2C","")) {
                 $uri += "&tickers=$tickerList"
@@ -2875,7 +3535,7 @@ function Get-PancakeswapNetworkAssets {
 
         # converting a comma-separated list into url compatible
         if ($Tickers) {
-            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+            $tickerList = ($Tickers.Split(",").Trim() -join "%2C").Replace(" ","+")
 
             if ($tickerList.Replace("%2C","")) {
                 $uri += "&tickers=$tickerList"
@@ -3491,7 +4151,7 @@ function Get-SpotPrices {
 
         # converting a comma-separated list into url compatible
         if ($Tickers) {
-            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+            $tickerList = ($Tickers.Split(",").Trim() -join "%2C").Replace(" ","+")
 
             if ($tickerList.Replace("%2C","")) {
                 $uri += "&tickers=$tickerList"
@@ -3578,7 +4238,7 @@ function Get-PriceVolatility {
 
         # converting a comma-separated list into url compatible
         if ($Tickers) {
-            $tickerList = $Tickers.Split(",").Trim() -join "%2C"
+            $tickerList = ($Tickers.Split(",").Trim() -join "%2C").Replace(" ","+")
 
             if ($tickerList.Replace("%2C","")) {
                 $uri += "&tickers=$tickerList"

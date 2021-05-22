@@ -19,7 +19,8 @@ https://www.covalenthq.com/docs/api/
 6. Default output format is JSON. To change that, either set `$env:OUTPUT_FORMAT` variable or use `-Format` parameter available in many functions
 7. Default Covalent API url is `https://api.covalenthq.com/v1`, but it can be changed via `-APIUrl` parameter of each function if needed
 8. Many functions have the pagination parameters `-PageNumber` and `-PageSize` which can be used to limit output
-9. Many functions have `ChainId` parameter. A list of supported blockchain networks can be found [here](https://www.covalenthq.com/docs/api/#overview--supported-networks) 
+9. Many functions have `ChainId` parameter. A list of supported blockchain networks can be found [here](https://www.covalenthq.com/docs/api/#overview--supported-networks)
+10. Covalent offers the query language [Primer](https://www.covalenthq.com/docs/learn/tutorials/query-with-primer-beg) which makes it easy for users to further process and transform the records in the Covalent API responses for their custom use-cases. All class A functions have the Primer parameters: `Primer`, `Match`, `Group`, `Sort`, `Skip`, `Limit`. It is better to use single quotes when working with the Primer queries to avoid escaping double quotes. Examples: `-Match '{"gas_spent": {"$lt": 200000} }'`
 
 ### Functions and Respective API Endpoint ([doc](https://www.covalenthq.com/docs/api/))
 **Class A**
