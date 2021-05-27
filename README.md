@@ -39,6 +39,8 @@ https://www.covalenthq.com/docs/api/
 - Get-TokenHoldersAsOfBlockHeight - "Get token holders as of a block height"
 - Get-ContractMetadata - "Get all contract metadata"
 - Get-TransactionByTxHash - "Get a transaction"
+- Get-AllChains - "Get all chains"
+- Get-AllChainStatuses - "Get all chain statuses"
 
 **Class B**
 - Get-SushiswapAddressExchangeLiquidityTransactions - "Get Sushiswap address exchange liquidity transactions"
