@@ -2056,6 +2056,96 @@ function Get-TransactionByTxHash {
 
 <#
 .SYNOPSIS
+Function returns all available chains.
+
+.DESCRIPTION
+Function returns all available chains.
+
+.EXAMPLE
+Get-AllChains
+#>
+function Get-AllChains {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/chains/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
+Function returns all chain statuses.
+
+.DESCRIPTION
+Function returns all chain statuses.
+
+.EXAMPLE
+Get-AllChainStatuses
+#>
+function Get-AllChainStatuses {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        ####### API token #######
+        [Parameter(Mandatory = $false)]
+        [String]$APIToken = $env:COVALENT_API_TOKEN,
+
+        ####### common parameters #######
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("JSON", "CSV")]
+        [String]$Format = $env:OUTPUT_FORMAT,
+
+        [Parameter(Mandatory = $false)]
+        [String]$APIUrl = $script:COVALENT_API_URL
+    )
+    BEGIN {
+        $uri = "$APIUrl/chains/status/?&key=$APIToken"
+
+        ####### validating API token #######
+        Confirm-APIToken -APIToken $APIToken
+
+        ####### processing of the common parameters #######
+        if ($Format) {
+            $uri += "&format=$($Format.ToLower())"
+        }
+    }
+    PROCESS {
+        $responseOutput = Invoke-RestMethod -Method GET -UseBasicParsing -Uri $uri -ContentType "application/json"
+    }
+    END {
+        Write-Output $responseOutput
+    }
+}
+
+<#
+.SYNOPSIS
 Function returns Sushiswap address exchange liquidity transactions.
 
 .DESCRIPTION
@@ -2894,9 +2984,6 @@ Function returns Aave v2 network assets.
 .DESCRIPTION
 Function returns Aave v2 network assets.
 
-.PARAMETER Address
-Wallet address.
-
 .EXAMPLE
 Get-AaveV2NetworkAssets
 #>
@@ -2949,9 +3036,6 @@ Function returns Aave network assets.
 
 .DESCRIPTION
 Function returns Aave network assets.
-
-.PARAMETER Address
-Wallet address.
 
 .EXAMPLE
 Get-AaveNetworkAssets
@@ -3076,9 +3160,6 @@ Function returns Compound network assets.
 
 .DESCRIPTION
 Function returns Compound network assets.
-
-.PARAMETER Address
-Wallet address.
 
 .EXAMPLE
 Get-CompoundNetworkAssets
@@ -4287,5 +4368,5 @@ $functionList += @("Get-AaveV2NetworkAssets", "Get-AaveNetworkAssets", "Get-Augu
 $functionList += @("Get-PancakeswapV2AddressExchangeBalances", "Get-PancakeswapAddressExchangeBalances", "Get-PancakeswapAddressExchangeLiquidityTransactions")
 $functionList += @("Get-PancakeswapV2NetworkAssets", "Get-PancakeswapNetworkAssets", "Get-PancakeswapV2NetworkAssetByAddress")
 $functionList += @("Get-HistoricalPricesByAddress", "Get-HistoricalPricesByAddresses", "Get-HistoricalPricesByAddressesV2")
-$functionList += @("Get-HistoricalPricesByTicker", "Get-SpotPrices", "Get-PriceVolatility")
+$functionList += @("Get-HistoricalPricesByTicker", "Get-SpotPrices", "Get-PriceVolatility", "Get-AllChains", "Get-AllChainStatuses")
 Export-ModuleMember -Function $functionList
