@@ -1,4 +1,4 @@
-# Covalent API PowerShell Module
+![Covalent API PowerShell Module](https://user-images.githubusercontent.com/69808741/120906599-d33e5080-c628-11eb-9909-0826899b65a7.png)
 
 **Created By**: Maxim Tkachenko
 <br>
